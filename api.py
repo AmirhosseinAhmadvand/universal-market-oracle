@@ -55,11 +55,25 @@ HTML_CONTENT = r"""
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer; transition: all 0.3s ease;
+            color: white;
         }
         .timeframe-btn:hover, .timeframe-btn.active {
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 255, 0.1));
             border-color: #00ffff;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+        .asset-btn {
+            padding: 12px 20px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer; transition: all 0.3s ease;
+            color: white; font-size: 16px;
+        }
+        .asset-btn:hover, .asset-btn.active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 255, 0.1));
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+            transform: scale(1.05);
         }
         #chart-container { height: 500px; width: 100%; }
     </style>
@@ -73,11 +87,18 @@ HTML_CONTENT = r"""
             <p class="text-gray-400 text-xl">AI-Powered Market Prediction Platform</p>
         </header>
 
-        <div class="glass-card p-6 mb-8 max-w-2xl mx-auto">
-            <input type="text" id="assetSearch" placeholder="Search asset (bitcoin, ethereum)..." 
-                   class="w-full bg-black/30 text-white px-6 py-3 rounded-lg border border-white/10 focus:border-cyan-400 outline-none text-lg">
+        <!-- Asset Selector -->
+        <div class="glass-card p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-300 mb-4 text-center">Select Asset</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button onclick="loadAssetData('bitcoin')" class="asset-btn active" id="btn-bitcoin">₿ Bitcoin</button>
+                <button onclick="loadAssetData('ethereum')" class="asset-btn" id="btn-ethereum">Ξ Ethereum</button>
+                <button onclick="loadAssetData('gold')" class="asset-btn" id="btn-gold">🥇 Gold</button>
+                <button onclick="loadAssetData('eur')" class="asset-btn" id="btn-eur">💶 EUR/USD</button>
+            </div>
         </div>
 
+        <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="glass-card p-6 text-center">
                 <div class="flex items-center justify-center text-sm text-gray-400 mb-2">
@@ -100,12 +121,14 @@ HTML_CONTENT = r"""
             </div>
         </div>
 
+        <!-- Timeframes -->
         <div class="glass-card p-6 mb-8 flex justify-center gap-3">
             <button class="timeframe-btn active" onclick="changeTimeframe('1d')">1D</button>
             <button class="timeframe-btn" onclick="changeTimeframe('1w')">1W</button>
             <button class="timeframe-btn" onclick="changeTimeframe('1m')">1M</button>
         </div>
 
+        <!-- Chart -->
         <div class="glass-card p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-300">Price Chart with AI Prediction</h3>
@@ -129,6 +152,12 @@ HTML_CONTENT = r"""
 
         async function loadAssetData(assetId) {
             currentAsset = assetId;
+            
+            // Update active button
+            document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-' + assetId);
+            if (activeBtn) activeBtn.classList.add('active');
+            
             try {
                 const days = getTimeframeDays(currentTimeframe);
                 const response = await fetch(`/api/data/${assetId}?days=${days}`);
