@@ -88,7 +88,6 @@ HTML_CONTENT = r"""
             <p class="text-gray-400 text-xl">AI-Powered Market Prediction Platform</p>
         </header>
 
-        <!-- Asset Selector -->
         <div class="glass-card p-6 mb-8">
             <h3 class="text-xl font-bold text-gray-300 mb-4 text-center">Select Asset</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -99,7 +98,6 @@ HTML_CONTENT = r"""
             </div>
         </div>
 
-        <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="glass-card p-6 text-center">
                 <div class="flex items-center justify-center text-sm text-gray-400 mb-2">
@@ -122,14 +120,12 @@ HTML_CONTENT = r"""
             </div>
         </div>
 
-        <!-- Timeframes -->
         <div class="glass-card p-6 mb-8 flex justify-center gap-3">
             <button class="timeframe-btn active" onclick="changeTimeframe('1d')">1D</button>
             <button class="timeframe-btn" onclick="changeTimeframe('1w')">1W</button>
             <button class="timeframe-btn" onclick="changeTimeframe('1m')">1M</button>
         </div>
 
-        <!-- Chart -->
         <div class="glass-card p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-300">Price Chart with AI Prediction</h3>
@@ -137,7 +133,6 @@ HTML_CONTENT = r"""
             <div id="chart-container"></div>
         </div>
 
-        <!-- Calendar Section -->
         <div class="glass-card p-6 mb-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-300">📅 Global Events Calendar</h3>
@@ -147,12 +142,10 @@ HTML_CONTENT = r"""
                     <button onclick="loadCalendar(90)" class="timeframe-btn">90 Days</button>
                 </div>
             </div>
-            
             <div id="todayEvents" class="mb-6">
                 <h4 class="text-lg font-bold text-cyan-400 mb-3">🔴 Today's Events</h4>
                 <div id="todayEventsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
             </div>
-            
             <h4 class="text-lg font-bold text-cyan-400 mb-3">📆 Upcoming Events</h4>
             <div id="upcomingEventsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -189,7 +182,6 @@ HTML_CONTENT = r"""
                     document.getElementById('high24h').innerText = `$${data.high_24h.toLocaleString()}`;
                     document.getElementById('low24h').innerText = `$${data.low_24h.toLocaleString()}`;
                     document.getElementById('prediction').innerText = `$${data.predicted_price.toLocaleString()}`;
-                    
                     updateChart(data.chart_data, data.predictions);
                 }
             } catch (error) {
@@ -219,11 +211,7 @@ HTML_CONTENT = r"""
             lineSeries = chart.addLineSeries({ color: '#00ffff', lineWidth: 2 });
             lineSeries.setData(chartData.map(d => ({ time: d.time, value: d.price })));
             
-            predictionSeries = chart.addLineSeries({ 
-                color: '#ff00ff', 
-                lineWidth: 2, 
-                lineStyle: 2
-            });
+            predictionSeries = chart.addLineSeries({ color: '#ff00ff', lineWidth: 2, lineStyle: 2 });
             predictionSeries.setData(predictions);
             
             chart.timeScale().fitContent();
@@ -251,12 +239,10 @@ HTML_CONTENT = r"""
             }, 3000);
         }
 
-        // Calendar functions
         async function loadCalendar(days) {
             try {
                 const response = await fetch(`/api/calendar?days=${days}`);
                 const data = await response.json();
-                
                 if (data.status === 'success') {
                     renderTodayEvents(data.today_events);
                     renderUpcomingEvents(data.upcoming_events);
@@ -269,12 +255,7 @@ HTML_CONTENT = r"""
         function renderTodayEvents(events) {
             const container = document.getElementById('todayEventsList');
             const section = document.getElementById('todayEvents');
-            
-            if (events.length === 0) {
-                section.style.display = 'none';
-                return;
-            }
-            
+            if (events.length === 0) { section.style.display = 'none'; return; }
             section.style.display = 'block';
             container.innerHTML = events.map(event => `
                 <div class="glass-card p-4 border-l-4" style="border-color: ${getImpactColor(event.impact)}">
@@ -289,21 +270,17 @@ HTML_CONTENT = r"""
                     <div class="flex gap-2 flex-wrap">
                         ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
                     </div>
-                    <div class="mt-2 text-xs font-bold" style="color: ${getImpactColor(event.impact)}">
-                        Impact: ${event.impact.toUpperCase()}
-                    </div>
+                    <div class="mt-2 text-xs font-bold" style="color: ${getImpactColor(event.impact)}">Impact: ${event.impact.toUpperCase()}</div>
                 </div>
             `).join('');
         }
 
         function renderUpcomingEvents(events) {
             const container = document.getElementById('upcomingEventsList');
-            
             if (events.length === 0) {
-                container.innerHTML = '<div class="text-gray-500 col-span-3 text-center py-8">No upcoming events in this period</div>';
+                container.innerHTML = '<div class="text-gray-500 col-span-3 text-center py-8">No upcoming events</div>';
                 return;
             }
-            
             container.innerHTML = events.map(event => `
                 <div class="glass-card p-4 hover:scale-105 transition-transform" style="border-top: 3px solid ${getImpactColor(event.impact)}">
                     <div class="flex items-center justify-between mb-3">
@@ -319,20 +296,13 @@ HTML_CONTENT = r"""
                     <div class="flex gap-1 flex-wrap mb-2">
                         ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
                     </div>
-                    <div class="text-xs font-bold" style="color: ${getImpactColor(event.impact)}">
-                        ${event.impact.toUpperCase()} IMPACT
-                    </div>
+                    <div class="text-xs font-bold" style="color: ${getImpactColor(event.impact)}">${event.impact.toUpperCase()} IMPACT</div>
                 </div>
             `).join('');
         }
 
         function getImpactColor(impact) {
-            const colors = {
-                'low': '#00ff88',
-                'medium': '#ffff00',
-                'high': '#ff8800',
-                'extreme': '#ff0000'
-            };
+            const colors = {'low': '#00ff88', 'medium': '#ffff00', 'high': '#ff8800', 'extreme': '#ff0000'};
             return colors[impact] || '#ffffff';
         }
     </script>
@@ -356,24 +326,12 @@ async def get_asset_data(symbol: str, days: int = 1):
             raise HTTPException(status_code=404, detail="No data available")
         
         current_data = fetcher.get_current_price(symbol)
-        
         predictor = CryptoPredictor(lookback=60)
         predictions = predictor.predict_next(df, days=7)
         
         last_timestamp = int(df.iloc[-1]['date'].timestamp())
-        prediction_data = []
-        for i, pred in enumerate(predictions):
-            prediction_data.append({
-                "time": last_timestamp + (i + 1) * 86400,
-                "value": round(pred, 2)
-            })
-        
-        chart_data = []
-        for _, row in df.iterrows():
-            chart_data.append({
-                "time": int(row['date'].timestamp()),
-                "price": round(row['price'], 2)
-            })
+        prediction_data = [{"time": last_timestamp + (i + 1) * 86400, "value": round(pred, 2)} for i, pred in enumerate(predictions)]
+        chart_data = [{"time": int(row['date'].timestamp()), "price": round(row['price'], 2)} for _, row in df.iterrows()]
         
         return {
             "status": "success",
@@ -401,18 +359,11 @@ async def get_live_price(symbol: str):
 
 @app.get("/api/calendar")
 async def get_calendar(days: int = 30):
-    """Get upcoming market events."""
     try:
         calendar = CalendarEngine()
         upcoming = calendar.get_upcoming_events(days)
         today_events = calendar.get_today_events()
-        
-        return {
-            "status": "success",
-            "upcoming_events": upcoming,
-            "today_events": today_events,
-            "total_count": len(upcoming)
-        }
+        return {"status": "success", "upcoming_events": upcoming, "today_events": today_events, "total_count": len(upcoming)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
