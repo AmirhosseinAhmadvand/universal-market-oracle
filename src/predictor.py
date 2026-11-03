@@ -1,29 +1,35 @@
 """
-LSTM Predictor for Cryptocurrency Prices
+Predictor with LSTM Support
 """
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+from pathlib import Path
+from src.lstm_model import LSTMModel
 
 
 class CryptoPredictor:
     def __init__(self, lookback: int = 60):
         self.lookback = lookback
-        self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.model = None
-    
-    def prepare_data(self, df: pd.DataFrame) -> tuple:
-        prices = df['price'].values.reshape(-1, 1)
-        scaled_prices = self.scaler.fit_transform(prices)
-        
-        X, y = [], []
-        for i in range(self.lookback, len(scaled_prices)):
-            X.append(scaled_prices[i-self.lookback:i, 0])
-            y.append(scaled_prices[i, 0])
-        
-        return np.array(X), np.array(y)
+        self.lstm_model = LSTMModel(lookback=lookback)
     
     def predict_next(self, df: pd.DataFrame, days: int = 7) -> list:
+        """Predict future prices using LSTM if available, else fallback to MA."""
+        # Try LSTM first
+        if self.lstm_model.is_trained():
+            try:
+                print("[INFO] Using LSTM model for prediction")
+                predictions = self.lstm_model.predict_next(df, days)
+                if predictions:
+                    return predictions
+            except Exception as e:
+                print(f"[WARNING] LSTM prediction failed: {e}")
+        
+        # Fallback to moving average
+        print("[INFO] Using moving average for prediction (LSTM not available)")
+        return self._moving_average_predict(df, days)
+    
+    def _moving_average_predict(self, df: pd.DataFrame, days: int) -> list:
+        """Simple moving average prediction (fallback)."""
         prices = df['price'].values
         predictions = []
         
