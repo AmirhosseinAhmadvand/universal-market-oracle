@@ -1,68 +1,12 @@
 {
   "fixed_events": [
-    {
-      "date": "2026-12-25",
-      "name": "Christmas Day",
-      "name_fa": "کریسمس",
-      "icon": "🎄",
-      "impact": "high",
-      "markets": ["forex", "crypto", "gold"],
-      "description": "Markets closed in US and Europe"
-    },
-    {
-      "date": "2026-10-31",
-      "name": "Halloween",
-      "name_fa": "هالوین",
-      "icon": "🎃",
-      "impact": "low",
-      "markets": [],
-      "description": "Cultural event"
-    },
-    {
-      "date": "2027-03-21",
-      "name": "Nowruz",
-      "name_fa": "نوروز",
-      "icon": "🌸",
-      "impact": "medium",
-      "markets": ["gold"],
-      "description": "Iranian New Year"
-    },
-    {
-      "date": "2026-11-26",
-      "name": "US Thanksgiving",
-      "name_fa": "شکرگزاری آمریکا",
-      "icon": "🦃",
-      "impact": "high",
-      "markets": ["forex", "stocks"],
-      "description": "US markets closed"
-    },
-    {
-      "date": "2027-01-01",
-      "name": "New Year",
-      "name_fa": "سال نو",
-      "icon": "🎆",
-      "impact": "high",
-      "markets": ["all"],
-      "description": "Global markets closed"
-    },
-    {
-      "date": "2026-11-05",
-      "name": "US Elections",
-      "name_fa": "انتخابات آمریکا",
-      "icon": "🗳️",
-      "impact": "extreme",
-      "markets": ["forex", "crypto", "gold"],
-      "description": "Major volatility expected"
-    },
-    {
-      "date": "2026-12-14",
-      "name": "FOMC Meeting",
-      "name_fa": "جلسه فدرال رزرو",
-      "icon": "🏦",
-      "impact": "extreme",
-      "markets": ["forex", "gold", "crypto"],
-      "description": "Interest rate decision"
-    }
+    {"date": "2026-12-25", "name": "Christmas", "name_fa": "کریسمس", "icon": "🎄", "impact": "high", "markets": ["forex", "crypto", "gold"], "description": "Markets closed"},
+    {"date": "2026-10-31", "name": "Halloween", "name_fa": "هالوین", "icon": "🎃", "impact": "low", "markets": [], "description": "Cultural event"},
+    {"date": "2027-03-21", "name": "Nowruz", "name_fa": "نوروز", "icon": "🌸", "impact": "medium", "markets": ["gold"], "description": "Iranian New Year"},
+    {"date": "2026-11-26", "name": "US Thanksgiving", "name_fa": "شکرگزاری", "icon": "🦃", "impact": "high", "markets": ["forex"], "description": "US markets closed"},
+    {"date": "2027-01-01", "name": "New Year", "name_fa": "سال نو", "icon": "🎆", "impact": "high", "markets": ["all"], "description": "Global markets closed"},
+    {"date": "2026-11-05", "name": "US Elections", "name_fa": "انتخابات", "icon": "🗳️", "impact": "extreme", "markets": ["forex", "crypto", "gold"], "description": "Major volatility"},
+    {"date": "2026-12-14", "name": "FOMC Meeting", "name_fa": "فدرال رزرو", "icon": "🏦", "impact": "extreme", "markets": ["forex", "gold", "crypto"], "description": "Interest rate decision"}
   ],
   "recurring_events": []
 }
