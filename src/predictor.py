@@ -25,7 +25,7 @@ class CryptoPredictor:
                 print(f"[WARNING] LSTM prediction failed: {e}")
         
         # Fallback to moving average
-        print("[INFO] Using moving average for prediction (LSTM not available)")
+        print("[INFO] Using moving average for prediction")
         return self._moving_average_predict(df, days)
     
     def _moving_average_predict(self, df: pd.DataFrame, days: int) -> list:
