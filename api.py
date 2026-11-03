@@ -7,6 +7,7 @@ import time
 
 from src.data_fetcher import DataFetcher
 from src.predictor import CryptoPredictor
+from src.calendar_engine import CalendarEngine
 
 app = FastAPI(title="Universal Market Oracle")
 
@@ -135,6 +136,26 @@ HTML_CONTENT = r"""
             </div>
             <div id="chart-container"></div>
         </div>
+
+        <!-- Calendar Section -->
+        <div class="glass-card p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-300">📅 Global Events Calendar</h3>
+                <div class="flex gap-2">
+                    <button onclick="loadCalendar(7)" class="timeframe-btn">7 Days</button>
+                    <button onclick="loadCalendar(30)" class="timeframe-btn active">30 Days</button>
+                    <button onclick="loadCalendar(90)" class="timeframe-btn">90 Days</button>
+                </div>
+            </div>
+            
+            <div id="todayEvents" class="mb-6">
+                <h4 class="text-lg font-bold text-cyan-400 mb-3">🔴 Today's Events</h4>
+                <div id="todayEventsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+            
+            <h4 class="text-lg font-bold text-cyan-400 mb-3">📆 Upcoming Events</h4>
+            <div id="upcomingEventsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
     </div>
 
     <script>
@@ -148,12 +169,11 @@ HTML_CONTENT = r"""
         window.onload = () => {
             loadAssetData('bitcoin');
             startLiveUpdates('bitcoin');
+            loadCalendar(30);
         };
 
         async function loadAssetData(assetId) {
             currentAsset = assetId;
-            
-            // Update active button
             document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById('btn-' + assetId);
             if (activeBtn) activeBtn.classList.add('active');
@@ -230,6 +250,91 @@ HTML_CONTENT = r"""
                 }
             }, 3000);
         }
+
+        // Calendar functions
+        async function loadCalendar(days) {
+            try {
+                const response = await fetch(`/api/calendar?days=${days}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    renderTodayEvents(data.today_events);
+                    renderUpcomingEvents(data.upcoming_events);
+                }
+            } catch (error) {
+                console.error("Failed to load calendar:", error);
+            }
+        }
+
+        function renderTodayEvents(events) {
+            const container = document.getElementById('todayEventsList');
+            const section = document.getElementById('todayEvents');
+            
+            if (events.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            container.innerHTML = events.map(event => `
+                <div class="glass-card p-4 border-l-4" style="border-color: ${getImpactColor(event.impact)}">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-3xl">${event.icon}</span>
+                        <div>
+                            <div class="font-bold text-white">${event.name}</div>
+                            <div class="text-sm text-gray-400">${event.name_fa || ''}</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-2">${event.description}</div>
+                    <div class="flex gap-2 flex-wrap">
+                        ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
+                    </div>
+                    <div class="mt-2 text-xs font-bold" style="color: ${getImpactColor(event.impact)}">
+                        Impact: ${event.impact.toUpperCase()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderUpcomingEvents(events) {
+            const container = document.getElementById('upcomingEventsList');
+            
+            if (events.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 col-span-3 text-center py-8">No upcoming events in this period</div>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="glass-card p-4 hover:scale-105 transition-transform" style="border-top: 3px solid ${getImpactColor(event.impact)}">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-4xl">${event.icon}</span>
+                        <div class="text-right">
+                            <div class="text-xs text-gray-400">In</div>
+                            <div class="text-lg font-bold text-cyan-400">${event.days_until} days</div>
+                        </div>
+                    </div>
+                    <div class="font-bold text-white mb-1">${event.name}</div>
+                    <div class="text-sm text-gray-400 mb-2">${event.name_fa || ''}</div>
+                    <div class="text-xs text-gray-500 mb-3">${event.description}</div>
+                    <div class="flex gap-1 flex-wrap mb-2">
+                        ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
+                    </div>
+                    <div class="text-xs font-bold" style="color: ${getImpactColor(event.impact)}">
+                        ${event.impact.toUpperCase()} IMPACT
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getImpactColor(impact) {
+            const colors = {
+                'low': '#00ff88',
+                'medium': '#ffff00',
+                'high': '#ff8800',
+                'extreme': '#ff0000'
+            };
+            return colors[impact] || '#ffffff';
+        }
     </script>
 </body>
 </html>
@@ -290,6 +395,24 @@ async def get_live_price(symbol: str):
         fetcher = DataFetcher(cache_dir="data", cache_hours=0.1)
         current_data = fetcher.get_current_price(symbol)
         return {"status": "success", "price": current_data.get("price", 0)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/calendar")
+async def get_calendar(days: int = 30):
+    """Get upcoming market events."""
+    try:
+        calendar = CalendarEngine()
+        upcoming = calendar.get_upcoming_events(days)
+        today_events = calendar.get_today_events()
+        
+        return {
+            "status": "success",
+            "upcoming_events": upcoming,
+            "today_events": today_events,
+            "total_count": len(upcoming)
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
