@@ -1,0 +1,124 @@
+"""
+Data Fetcher with Online/Offline Fallback
+"""
+import requests
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+from pathlib import Path
+import json
+
+
+class DataFetcher:
+    def __init__(self, cache_dir: str = "data", cache_hours: int = 1):
+        self.cache_dir = Path(cache_dir)
+        self.cache_dir.mkdir(exist_ok=True)
+        self.cache_hours = cache_hours
+        self.api_url = "https://api.coingecko.com/api/v3"
+        self.sample_data_path = self.cache_dir / "sample_data.json"
+    
+    def _get_cache_path(self, symbol: str) -> Path:
+        return self.cache_dir / f"{symbol}_cache.json"
+    
+    def _is_cache_valid(self, cache_path: Path) -> bool:
+        if not cache_path.exists():
+            return False
+        cache_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
+        return (datetime.now() - cache_time) < timedelta(hours=self.cache_hours)
+    
+    def _load_json(self, path: Path) -> pd.DataFrame:
+        with open(path, 'r') as f:
+            data = json.load(f)
+        df = pd.DataFrame(data)
+        df['date'] = pd.to_datetime(df['date'])
+        return df
+    
+    def _save_to_cache(self, df: pd.DataFrame, cache_path: Path):
+        records = df.copy()
+        records['date'] = records['date'].astype(str)
+        with open(cache_path, 'w') as f:
+            json.dump(records.to_dict(orient='records'), f)
+    
+    def fetch_historical_data(self, symbol: str = "bitcoin", days: int = 30) -> pd.DataFrame:
+        cache_path = self._get_cache_path(symbol)
+        
+        if self._is_cache_valid(cache_path):
+            print(f"[INFO] Using cached data for {symbol}")
+            return self._load_json(cache_path)
+        
+        try:
+            print(f"[INFO] Fetching data from API for {symbol}...")
+            url = f"{self.api_url}/coins/{symbol}/market_chart"
+            params = {"vs_currency": "usd", "days": days}
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            prices = data.get('prices', [])
+            
+            df = pd.DataFrame(prices, columns=['timestamp', 'price'])
+            df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
+            df = df[['date', 'price']]
+            
+            self._save_to_cache(df, cache_path)
+            print(f"[SUCCESS] Fetched and cached {len(df)} records")
+            return df
+            
+        except Exception as e:
+            print(f"[ERROR] API request failed: {e}")
+            
+            if self.sample_data_path.exists():
+                print("[WARNING] API failed. Loading sample data...")
+                return self._load_json(self.sample_data_path)
+            
+            print("[CRITICAL] No data available.")
+            return pd.DataFrame(columns=['date', 'price'])
+    
+    def get_current_price(self, symbol: str = "bitcoin") -> dict:
+        cache_path = self.cache_dir / f"{symbol}_current.json"
+        
+        if self._is_cache_valid(cache_path):
+            with open(cache_path, 'r') as f:
+                return json.load(f)
+        
+        try:
+            url = f"{self.api_url}/simple/price"
+            params = {
+                "ids": symbol,
+                "vs_currencies": "usd",
+                "include_last_updated_at": "true"
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            if symbol not in data:
+                raise ValueError(f"No data for {symbol}")
+            
+            result = {
+                "price": data[symbol]["usd"],
+                "currency": "USD",
+                "timestamp": datetime.fromtimestamp(data[symbol]["last_updated_at"]).isoformat()
+            }
+            
+            with open(cache_path, 'w') as f:
+                json.dump(result, f)
+            
+            return result
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch current price: {e}")
+            
+            if self.sample_data_path.exists():
+                with open(self.sample_data_path, 'r') as f:
+                    sample_data = json.load(f)
+                last_record = sample_data[-1]
+                return {
+                    "price": last_record["price"],
+                    "currency": "USD",
+                    "timestamp": last_record["date"],
+                    "note": "SAMPLE DATA (API unavailable)"
+                }
+            
+            return {"price": None, "currency": "USD", "timestamp": None, "error": str(e)}
