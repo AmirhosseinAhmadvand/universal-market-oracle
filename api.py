@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 import uvicorn
 import webbrowser
 import threading
@@ -11,14 +12,17 @@ from src.calendar_engine import CalendarEngine
 from src.news_engine import NewsEngine
 from src.chatbot import ChatBot
 
-app = FastAPI(title="Universal Market Oracle - Empire Edition")
+app = FastAPI(title="Universal Market Oracle - Empire Edition v3.0")
 
 # Initialize engines
-data_fetcher = DataFetcher(cache_dir="data", cache_hours=1)
+data_fetcher = DataFetcher(cache_dir="data", cache_minutes=5)
 predictor = CryptoPredictor(lookback=60)
 calendar_engine = CalendarEngine()
 news_engine = NewsEngine()
 chatbot = ChatBot()
+
+class ChatRequest(BaseModel):
+    message: str
 
 HTML_CONTENT = r"""
 <!DOCTYPE html>
@@ -30,13 +34,15 @@ HTML_CONTENT = r"""
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
         body {
             background: linear-gradient(-45deg, #0a0e27, #1a1f3a, #0f1629, #1a1a2e);
             background-size: 400% 400%;
             animation: gradientShift 15s ease infinite;
             min-height: 100vh;
             color: white;
+            margin: 0;
+            padding: 20px;
         }
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
@@ -75,8 +81,11 @@ HTML_CONTENT = r"""
         }
         #chart-container { height: 500px; width: 100%; }
         
-        /* Search Bar */
-        .search-container { position: relative; }
+        /* Search Bar - FIXED Z-INDEX */
+        .search-wrapper {
+            position: relative;
+            z-index: 100;
+        }
         .search-input {
             width: 100%;
             padding: 16px 24px;
@@ -102,9 +111,10 @@ HTML_CONTENT = r"""
             border-radius: 12px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
             margin-top: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
         .search-item {
             padding: 12px 16px;
@@ -189,6 +199,7 @@ HTML_CONTENT = r"""
             max-width: 85%;
             font-size: 14px;
             line-height: 1.4;
+            white-space: pre-wrap;
         }
         .chat-message.bot {
             background: rgba(0, 255, 255, 0.1);
@@ -261,18 +272,18 @@ HTML_CONTENT = r"""
         ::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 255, 0.5); }
     </style>
 </head>
-<body class="p-6">
+<body>
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-6xl font-extrabold mb-4 glow-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
                 Universal Market Oracle
             </h1>
-            <p class="text-gray-400 text-xl">Empire Edition - AI-Powered Market Prediction Platform</p>
+            <p class="text-gray-400 text-xl">Empire Edition v3.0 - AI-Powered Market Prediction Platform</p>
         </header>
 
         <!-- Search Bar -->
         <div class="glass-card p-6 mb-8">
-            <div class="search-container max-w-3xl mx-auto">
+            <div class="search-wrapper max-w-3xl mx-auto">
                 <input type="text" id="assetSearch" class="search-input" 
                        placeholder="🔍 Search any asset: Bitcoin, Ethereum, Gold, EUR, USD, JPY..."
                        oninput="searchAssets(this.value)" onblur="setTimeout(() => document.getElementById('searchDropdown').style.display='none', 200)">
@@ -340,33 +351,34 @@ HTML_CONTENT = r"""
             <h3 class="text-2xl font-bold text-gray-300 mb-6">📅 Global Events Calendar</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Gregorian Calendar -->
                 <div>
                     <h4 class="text-lg font-bold text-cyan-400 mb-3">🌍 Gregorian Calendar</h4>
                     <div id="gregorianCalendar" class="glass-card p-4"></div>
                 </div>
-                
-                <!-- Persian Calendar -->
                 <div>
                     <h4 class="text-lg font-bold text-cyan-400 mb-3">🇮🇷 Persian Calendar (Shamsi)</h4>
                     <div id="persianCalendar" class="glass-card p-4"></div>
                 </div>
             </div>
             
-            <!-- Today's Events -->
             <div id="todayEvents" class="mb-6">
                 <h4 class="text-lg font-bold text-cyan-400 mb-3">🔴 Today's Events</h4>
                 <div id="todayEventsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
             </div>
             
-            <!-- Upcoming Events -->
             <h4 class="text-lg font-bold text-cyan-400 mb-3">📆 Upcoming Events</h4>
             <div id="upcomingEventsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- News Feed -->
         <div class="glass-card p-6 mb-8">
-            <h3 class="text-2xl font-bold text-gray-300 mb-6">📰 Global News Feed</h3>
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-300">📰 Global News Feed</h3>
+                <div class="flex gap-2">
+                    <button onclick="loadNews('en')" class="timeframe-btn active" id="btn-en">English</button>
+                    <button onclick="loadNews('fa')" class="timeframe-btn" id="btn-fa">فارسی</button>
+                </div>
+            </div>
             <div id="newsFeed" class="space-y-3"></div>
         </div>
     </div>
@@ -402,11 +414,12 @@ HTML_CONTENT = r"""
         let currentTimeframe = '1d';
         let priceUpdateInterval = null;
         let allAssets = [];
+        let currentNewsLang = 'en';
 
         window.onload = async () => {
             await loadAssets();
             loadCalendar();
-            loadNews();
+            loadNews('en');
         };
 
         async function loadAssets() {
@@ -478,11 +491,10 @@ HTML_CONTENT = r"""
                     document.getElementById('low24h').innerText = `$${data.low_24h.toLocaleString()}`;
                     document.getElementById('prediction').innerText = `$${data.predicted_price.toLocaleString()}`;
                     
-                    // Update signal
                     const signalEl = document.getElementById('signalBadge');
                     const reasonEl = document.getElementById('signalReason');
                     signalEl.innerText = data.signal.signal;
-                    reasonEl.innerText = data.signal.reason;
+                    reasonEl.innerText = data.signal.reason_en;
                     signalEl.className = `text-2xl font-bold signal-${data.signal.signal.toLowerCase()}`;
                     
                     updateChart(data.chart_data, data.predictions);
@@ -493,8 +505,8 @@ HTML_CONTENT = r"""
         }
 
         function getTimeframeDays(timeframe) {
-            const map = { '1m': 1/1440, '5m': 5/1440, '1d': 1, '1w': 7, '1m_month': 30 };
-            return Math.max(1, Math.ceil(map[timeframe] || 1));
+            const map = { '1m': 1, '5m': 1, '1d': 30, '1w': 90, '1m_month': 365 };
+            return map[timeframe] || 30;
         }
 
         function updateChart(chartData, predictions) {
@@ -620,7 +632,7 @@ HTML_CONTENT = r"""
                             <div class="text-sm text-gray-400">${event.name_fa || ''}</div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-500 mb-2">${event.description}</div>
+                    <div class="text-xs text-gray-500 mb-2">${event.description_fa || event.description}</div>
                     <div class="flex gap-2 flex-wrap">
                         ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
                     </div>
@@ -646,7 +658,7 @@ HTML_CONTENT = r"""
                     </div>
                     <div class="font-bold text-white mb-1">${event.name}</div>
                     <div class="text-sm text-gray-400 mb-2">${event.name_fa || ''}</div>
-                    <div class="text-xs text-gray-500 mb-3">${event.description}</div>
+                    <div class="text-xs text-gray-500 mb-3">${event.description_fa || event.description}</div>
                     <div class="flex gap-1 flex-wrap mb-2">
                         ${event.markets.map(m => `<span class="text-xs px-2 py-1 rounded bg-white/10">${m.toUpperCase()}</span>`).join('')}
                     </div>
@@ -661,19 +673,23 @@ HTML_CONTENT = r"""
         }
 
         // News functions
-        async function loadNews() {
+        async function loadNews(lang) {
+            currentNewsLang = lang;
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('btn-fa').classList.toggle('active', lang === 'fa');
+            
             try {
-                const response = await fetch('/api/news');
+                const response = await fetch(`/api/news?lang=${lang}`);
                 const data = await response.json();
                 if (data.status === 'success') {
-                    renderNews(data.news);
+                    renderNews(data.news, lang);
                 }
             } catch (error) {
                 console.error("Failed to load news:", error);
             }
         }
 
-        function renderNews(news) {
+        function renderNews(news, lang) {
             const container = document.getElementById('newsFeed');
             container.innerHTML = news.map(item => `
                 <div class="news-item" style="border-color: ${getImpactColor(item.impact)}">
@@ -706,6 +722,7 @@ HTML_CONTENT = r"""
             const messagesContainer = document.getElementById('chatMessages');
             messagesContainer.innerHTML += `<div class="chat-message user">${message}</div>`;
             input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
             try {
                 const response = await fetch('/api/chat', {
@@ -733,7 +750,6 @@ async def read_root():
 
 @app.get("/api/assets")
 async def get_all_assets():
-    """Get all available assets with metadata."""
     try:
         assets = data_fetcher.get_all_assets()
         return {"status": "success", "assets": assets}
@@ -742,7 +758,7 @@ async def get_all_assets():
 
 
 @app.get("/api/data/{symbol}")
-async def get_asset_data(symbol: str, days: int = 1):
+async def get_asset_data(symbol: str, days: int = 30):
     try:
         df = data_fetcher.fetch_historical_data(symbol, days=max(1, days))
         
@@ -801,19 +817,18 @@ async def get_calendar():
 
 
 @app.get("/api/news")
-async def get_news():
+async def get_news(lang: str = "en"):
     try:
-        news = news_engine.get_latest_news()
+        news = news_engine.get_latest_news(lang)
         return news
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/chat")
-async def chat(request: dict):
+async def chat(request: ChatRequest):
     try:
-        message = request.get("message", "")
-        response = chatbot.get_response(message)
+        response = chatbot.get_response(request.message)
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
