@@ -1,2 +1,2 @@
-"""Universal Market Oracle - AI-Powered Market Prediction Platform"""
-__version__ = "0.1.0"
+"""Universal Market Oracle - Empire Edition"""
+__version__ = "2.0.0"
