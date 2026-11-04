@@ -1,9 +1,15 @@
 """
-Global Events Calendar Engine
+Dual Calendar Engine (Gregorian + Persian/Shamsi)
 """
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
+
+try:
+    import jdatetime
+    HAS_JDATETIME = True
+except ImportError:
+    HAS_JDATETIME = False
 
 
 class CalendarEngine:
@@ -19,14 +25,25 @@ class CalendarEngine:
     
     def _default_events(self):
         return {
-            "fixed_events": [
-                {"date": "2026-12-25", "name": "Christmas", "name_fa": "کریسمس", "icon": "🎄", "impact": "high", "markets": ["forex", "crypto", "gold"], "description": "Markets closed"},
+            "gregorian_events": [
+                {"date": "2026-12-25", "name": "Christmas", "name_fa": "کریسمس", "icon": "🎄", "impact": "high", "markets": ["forex", "crypto", "gold"], "description": "Markets closed in US and Europe"},
                 {"date": "2026-10-31", "name": "Halloween", "name_fa": "هالوین", "icon": "🎃", "impact": "low", "markets": [], "description": "Cultural event"},
-                {"date": "2027-03-21", "name": "Nowruz", "name_fa": "نوروز", "icon": "🌸", "impact": "medium", "markets": ["gold"], "description": "Iranian New Year"},
-                {"date": "2026-11-26", "name": "US Thanksgiving", "name_fa": "شکرگزاری", "icon": "🦃", "impact": "high", "markets": ["forex"], "description": "US markets closed"},
-                {"date": "2027-01-01", "name": "New Year", "name_fa": "سال نو", "icon": "🎆", "impact": "high", "markets": ["all"], "description": "Global markets closed"},
-                {"date": "2026-11-05", "name": "US Elections", "name_fa": "انتخابات", "icon": "🗳️", "impact": "extreme", "markets": ["forex", "crypto", "gold"], "description": "Major volatility"},
-                {"date": "2026-12-14", "name": "FOMC Meeting", "name_fa": "فدرال رزرو", "icon": "🏦", "impact": "extreme", "markets": ["forex", "gold", "crypto"], "description": "Interest rate decision"}
+                {"date": "2027-01-01", "name": "New Year", "name_fa": "سال نو میلادی", "icon": "🎆", "impact": "high", "markets": ["all"], "description": "Global markets closed"},
+                {"date": "2026-11-05", "name": "US Elections", "name_fa": "انتخابات آمریکا", "icon": "🗳️", "impact": "extreme", "markets": ["forex", "crypto", "gold"], "description": "Major market volatility expected"},
+                {"date": "2026-12-14", "name": "FOMC Meeting", "name_fa": "جلسه فدرال رزرو", "icon": "🏦", "impact": "extreme", "markets": ["forex", "gold", "crypto"], "description": "Interest rate decision"},
+                {"date": "2027-02-14", "name": "Valentine's Day", "name_fa": "ولنتاین", "icon": "❤️", "impact": "low", "markets": ["gold"], "description": "Slight increase in gold demand"},
+                {"date": "2026-11-27", "name": "Black Friday", "name_fa": "بلک فرایدی", "icon": "🛍️", "impact": "medium", "markets": ["stocks"], "description": "Retail stocks surge"},
+                {"date": "2026-11-26", "name": "US Thanksgiving", "name_fa": "شکرگزاری آمریکا", "icon": "🦃", "impact": "high", "markets": ["forex"], "description": "US markets closed"},
+                {"date": "2027-03-17", "name": "St. Patrick's Day", "name_fa": "سنت پاتریک", "icon": "☘️", "impact": "low", "markets": [], "description": "Cultural event"},
+                {"date": "2026-12-31", "name": "New Year's Eve", "name_fa": "شب سال نو", "icon": "🎉", "impact": "medium", "markets": ["all"], "description": "Early market close"},
+            ],
+            "persian_events": [
+                {"date": "1405-01-01", "name": "Nowruz", "name_fa": "نوروز", "icon": "🌸", "impact": "medium", "markets": ["gold"], "description": "Iranian New Year - gold demand increases"},
+                {"date": "1405-01-13", "name": "Sizdah Bedar", "name_fa": "سیزده‌بدر", "icon": "🌿", "impact": "low", "markets": [], "description": "Nature Day in Iran"},
+                {"date": "1405-03-14", "name": "Death of Khomeini", "name_fa": "رحلت امام خمینی", "icon": "🕌", "impact": "low", "markets": [], "description": "National holiday in Iran"},
+                {"date": "1405-03-15", "name": "Revolt of 15 Khordad", "name_fa": "قیام ۱۵ خرداد", "icon": "📜", "impact": "low", "markets": [], "description": "National holiday in Iran"},
+                {"date": "1405-11-22", "name": "Islamic Revolution", "name_fa": "پیروزی انقلاب اسلامی", "icon": "🇮🇷", "impact": "low", "markets": [], "description": "National holiday in Iran"},
+                {"date": "1405-12-29", "name": "Nationalization of Oil", "name_fa": "ملی شدن صنعت نفت", "icon": "🛢️", "impact": "low", "markets": ["gold"], "description": "National holiday in Iran"},
             ],
             "recurring_events": []
         }
@@ -36,11 +53,11 @@ class CalendarEngine:
         end_date = today + timedelta(days=days_ahead)
         upcoming = []
         
-        for event in self.events.get("fixed_events", []):
+        for event in self.events.get("gregorian_events", []):
             event_date = datetime.strptime(event["date"], "%Y-%m-%d").date()
             if today <= event_date <= end_date:
                 days_until = (event_date - today).days
-                upcoming.append({**event, "days_until": days_until, "type": "fixed"})
+                upcoming.append({**event, "days_until": days_until, "type": "gregorian"})
         
         upcoming.sort(key=lambda x: x["days_until"])
         return upcoming
@@ -50,11 +67,98 @@ class CalendarEngine:
         today_str = today.strftime("%Y-%m-%d")
         events = []
         
-        for event in self.events.get("fixed_events", []):
+        for event in self.events.get("gregorian_events", []):
             if event["date"] == today_str:
-                events.append({**event, "type": "fixed"})
+                events.append({**event, "type": "gregorian"})
         
         return events
+    
+    def get_today_persian_date(self):
+        """Get today's date in Persian calendar."""
+        if HAS_JDATETIME:
+            today = jdatetime.date.today()
+            return {
+                "year": today.year,
+                "month": today.month,
+                "day": today.day,
+                "month_name": today.strftime('%B'),
+                "weekday": today.strftime('%A'),
+                "formatted": today.strftime('%Y/%m/%d')
+            }
+        else:
+            # Fallback: approximate conversion
+            today = datetime.now()
+            # Approximate: 2026-11-03 ≈ 1405-08-12
+            persian_year = today.year - 621
+            persian_month = today.month + 2
+            persian_day = today.day - 20
+            if persian_day <= 0:
+                persian_day += 30
+                persian_month -= 1
+            if persian_month > 12:
+                persian_month -= 12
+                persian_year += 1
+            
+            month_names = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", 
+                          "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+            weekday_names = ["دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه", "یکشنبه"]
+            
+            return {
+                "year": persian_year,
+                "month": persian_month,
+                "day": persian_day,
+                "month_name": month_names[persian_month - 1] if 0 < persian_month <= 12 else "",
+                "weekday": weekday_names[today.weekday()],
+                "formatted": f"{persian_year}/{persian_month:02d}/{persian_day:02d}"
+            }
+    
+    def get_persian_calendar_month(self):
+        """Generate current Persian month calendar."""
+        today = datetime.now()
+        persian_date = self.get_today_persian_date()
+        
+        # Generate 30 days of current month
+        days = []
+        for day in range(1, 31):
+            days.append({
+                "day": day,
+                "is_today": day == persian_date["day"],
+                "is_weekend": (today + timedelta(days=day - persian_date["day"])).weekday() >= 4
+            })
+        
+        return {
+            "year": persian_date["year"],
+            "month": persian_date["month"],
+            "month_name": persian_date["month_name"],
+            "days": days
+        }
+    
+    def get_gregorian_calendar_month(self):
+        """Generate current Gregorian month calendar."""
+        today = datetime.now()
+        year = today.year
+        month = today.month
+        
+        # Get first day of month
+        first_day = datetime(year, month, 1)
+        last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year + 1, 1, 1) - timedelta(days=1)
+        
+        days = []
+        for day in range(1, last_day.day + 1):
+            date = datetime(year, month, day)
+            days.append({
+                "day": day,
+                "is_today": day == today.day,
+                "is_weekend": date.weekday() >= 5,
+                "weekday": date.strftime('%a')
+            })
+        
+        return {
+            "year": year,
+            "month": month,
+            "month_name": today.strftime('%B'),
+            "days": days
+        }
     
     def get_impact_color(self, impact: str) -> str:
         colors = {"low": "#00ff88", "medium": "#ffff00", "high": "#ff8800", "extreme": "#ff0000"}
