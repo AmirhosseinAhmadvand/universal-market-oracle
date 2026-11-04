@@ -26,24 +26,24 @@ class CalendarEngine:
     def _default_events(self):
         return {
             "gregorian_events": [
-                {"date": "2026-12-25", "name": "Christmas", "name_fa": "کریسمس", "icon": "🎄", "impact": "high", "markets": ["forex", "crypto", "gold"], "description": "Markets closed in US and Europe"},
-                {"date": "2026-10-31", "name": "Halloween", "name_fa": "هالوین", "icon": "🎃", "impact": "low", "markets": [], "description": "Cultural event"},
-                {"date": "2027-01-01", "name": "New Year", "name_fa": "سال نو میلادی", "icon": "🎆", "impact": "high", "markets": ["all"], "description": "Global markets closed"},
-                {"date": "2026-11-05", "name": "US Elections", "name_fa": "انتخابات آمریکا", "icon": "🗳️", "impact": "extreme", "markets": ["forex", "crypto", "gold"], "description": "Major market volatility expected"},
-                {"date": "2026-12-14", "name": "FOMC Meeting", "name_fa": "جلسه فدرال رزرو", "icon": "🏦", "impact": "extreme", "markets": ["forex", "gold", "crypto"], "description": "Interest rate decision"},
-                {"date": "2027-02-14", "name": "Valentine's Day", "name_fa": "ولنتاین", "icon": "❤️", "impact": "low", "markets": ["gold"], "description": "Slight increase in gold demand"},
-                {"date": "2026-11-27", "name": "Black Friday", "name_fa": "بلک فرایدی", "icon": "🛍️", "impact": "medium", "markets": ["stocks"], "description": "Retail stocks surge"},
-                {"date": "2026-11-26", "name": "US Thanksgiving", "name_fa": "شکرگزاری آمریکا", "icon": "🦃", "impact": "high", "markets": ["forex"], "description": "US markets closed"},
-                {"date": "2027-03-17", "name": "St. Patrick's Day", "name_fa": "سنت پاتریک", "icon": "☘️", "impact": "low", "markets": [], "description": "Cultural event"},
-                {"date": "2026-12-31", "name": "New Year's Eve", "name_fa": "شب سال نو", "icon": "🎉", "impact": "medium", "markets": ["all"], "description": "Early market close"},
+                {"date": "2026-12-25", "name": "Christmas", "name_fa": "کریسمس", "icon": "🎄", "impact": "high", "markets": ["forex", "crypto", "gold"], "description": "Markets closed in US and Europe", "description_fa": "بازارها در آمریکا و اروپا تعطیل"},
+                {"date": "2026-10-31", "name": "Halloween", "name_fa": "هالوین", "icon": "🎃", "impact": "low", "markets": [], "description": "Cultural event", "description_fa": "رویداد فرهنگی"},
+                {"date": "2027-01-01", "name": "New Year", "name_fa": "سال نو میلادی", "icon": "🎆", "impact": "high", "markets": ["all"], "description": "Global markets closed", "description_fa": "بازارهای جهانی تعطیل"},
+                {"date": "2026-11-05", "name": "US Elections", "name_fa": "انتخابات آمریکا", "icon": "🗳️", "impact": "extreme", "markets": ["forex", "crypto", "gold"], "description": "Major market volatility expected", "description_fa": "نوسان شدید بازار انتظار می‌رود"},
+                {"date": "2026-12-14", "name": "FOMC Meeting", "name_fa": "جلسه فدرال رزرو", "icon": "🏦", "impact": "extreme", "markets": ["forex", "gold", "crypto"], "description": "Interest rate decision", "description_fa": "تصمیم نرخ بهره"},
+                {"date": "2027-02-14", "name": "Valentine's Day", "name_fa": "ولنتاین", "icon": "❤️", "impact": "low", "markets": ["gold"], "description": "Slight increase in gold demand", "description_fa": "افزایش جزئی تقاضای طلا"},
+                {"date": "2026-11-27", "name": "Black Friday", "name_fa": "بلک فرایدی", "icon": "🛍️", "impact": "medium", "markets": ["stocks"], "description": "Retail stocks surge", "description_fa": "رشد سهام خرده‌فروشی"},
+                {"date": "2026-11-26", "name": "US Thanksgiving", "name_fa": "شکرگزاری آمریکا", "icon": "🦃", "impact": "high", "markets": ["forex"], "description": "US markets closed", "description_fa": "بازارهای آمریکا تعطیل"},
+                {"date": "2027-03-17", "name": "St. Patrick's Day", "name_fa": "سنت پاتریک", "icon": "☘️", "impact": "low", "markets": [], "description": "Cultural event", "description_fa": "رویداد فرهنگی"},
+                {"date": "2026-12-31", "name": "New Year's Eve", "name_fa": "شب سال نو", "icon": "🎉", "impact": "medium", "markets": ["all"], "description": "Early market close", "description_fa": "بسته شدن زودهنگام بازار"},
             ],
             "persian_events": [
-                {"date": "1405-01-01", "name": "Nowruz", "name_fa": "نوروز", "icon": "🌸", "impact": "medium", "markets": ["gold"], "description": "Iranian New Year - gold demand increases"},
-                {"date": "1405-01-13", "name": "Sizdah Bedar", "name_fa": "سیزده‌بدر", "icon": "🌿", "impact": "low", "markets": [], "description": "Nature Day in Iran"},
-                {"date": "1405-03-14", "name": "Death of Khomeini", "name_fa": "رحلت امام خمینی", "icon": "🕌", "impact": "low", "markets": [], "description": "National holiday in Iran"},
-                {"date": "1405-03-15", "name": "Revolt of 15 Khordad", "name_fa": "قیام ۱۵ خرداد", "icon": "📜", "impact": "low", "markets": [], "description": "National holiday in Iran"},
-                {"date": "1405-11-22", "name": "Islamic Revolution", "name_fa": "پیروزی انقلاب اسلامی", "icon": "🇮🇷", "impact": "low", "markets": [], "description": "National holiday in Iran"},
-                {"date": "1405-12-29", "name": "Nationalization of Oil", "name_fa": "ملی شدن صنعت نفت", "icon": "🛢️", "impact": "low", "markets": ["gold"], "description": "National holiday in Iran"},
+                {"date": "1405-01-01", "name": "Nowruz", "name_fa": "نوروز", "icon": "🌸", "impact": "medium", "markets": ["gold"], "description": "Iranian New Year - gold demand increases", "description_fa": "سال نو ایرانی - افزایش تقاضای طلا"},
+                {"date": "1405-01-13", "name": "Sizdah Bedar", "name_fa": "سیزده‌بدر", "icon": "🌿", "impact": "low", "markets": [], "description": "Nature Day in Iran", "description_fa": "روز طبیعت در ایران"},
+                {"date": "1405-03-14", "name": "Death of Khomeini", "name_fa": "رحلت امام خمینی", "icon": "🕌", "impact": "low", "markets": [], "description": "National holiday in Iran", "description_fa": "تعطیلی رسمی در ایران"},
+                {"date": "1405-03-15", "name": "Revolt of 15 Khordad", "name_fa": "قیام ۱۵ خرداد", "icon": "📜", "impact": "low", "markets": [], "description": "National holiday in Iran", "description_fa": "تعطیلی رسمی در ایران"},
+                {"date": "1405-11-22", "name": "Islamic Revolution", "name_fa": "پیروزی انقلاب اسلامی", "icon": "🇮🇷", "impact": "low", "markets": [], "description": "National holiday in Iran", "description_fa": "تعطیلی رسمی در ایران"},
+                {"date": "1405-12-29", "name": "Nationalization of Oil", "name_fa": "ملی شدن صنعت نفت", "icon": "🛢️", "impact": "low", "markets": ["gold"], "description": "National holiday in Iran", "description_fa": "تعطیلی رسمی در ایران"},
             ],
             "recurring_events": []
         }
@@ -74,7 +74,6 @@ class CalendarEngine:
         return events
     
     def get_today_persian_date(self):
-        """Get today's date in Persian calendar."""
         if HAS_JDATETIME:
             today = jdatetime.date.today()
             return {
@@ -86,9 +85,7 @@ class CalendarEngine:
                 "formatted": today.strftime('%Y/%m/%d')
             }
         else:
-            # Fallback: approximate conversion
             today = datetime.now()
-            # Approximate: 2026-11-03 ≈ 1405-08-12
             persian_year = today.year - 621
             persian_month = today.month + 2
             persian_day = today.day - 20
@@ -113,11 +110,9 @@ class CalendarEngine:
             }
     
     def get_persian_calendar_month(self):
-        """Generate current Persian month calendar."""
         today = datetime.now()
         persian_date = self.get_today_persian_date()
         
-        # Generate 30 days of current month
         days = []
         for day in range(1, 31):
             days.append({
@@ -134,12 +129,10 @@ class CalendarEngine:
         }
     
     def get_gregorian_calendar_month(self):
-        """Generate current Gregorian month calendar."""
         today = datetime.now()
         year = today.year
         month = today.month
         
-        # Get first day of month
         first_day = datetime(year, month, 1)
         last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year + 1, 1, 1) - timedelta(days=1)
         
