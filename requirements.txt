@@ -7,4 +7,5 @@ scikit-learn>=1.3.0
 python-multipart
 jdatetime>=4.0.0
 feedparser>=6.0.0
+websocket-client>=1.6.0
 tensorflow>=2.13.0
