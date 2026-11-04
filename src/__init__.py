@@ -1,2 +1,2 @@
-"""Universal Market Oracle - Empire Edition"""
-__version__ = "2.0.0"
+"""Universal Market Oracle - Empire Edition v3.0"""
+__version__ = "3.0.0"
