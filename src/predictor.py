@@ -29,13 +29,12 @@ class CryptoPredictor:
         prices = df['price'].values
         
         if len(prices) < 14:
-            return {"signal": "HOLD", "confidence": 50, "reason": "Not enough data"}
+            return {"signal": "HOLD", "confidence": 50, "reason_en": "Not enough data", "reason_fa": "داده کافی نیست"}
         
         rsi = self._calculate_rsi(prices, 14)
         ma7 = np.mean(prices[-7:]) if len(prices) >= 7 else prices[-1]
         ma25 = np.mean(prices[-25:]) if len(prices) >= 25 else prices[-1]
         
-        # RSI-based signal
         if rsi < 30:
             signal = "BUY"
             confidence = min(95, 70 + (30 - rsi))
